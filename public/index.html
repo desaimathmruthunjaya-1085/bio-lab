@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bio Laboratory | Access Verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;600;700&display=swap">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;600;700&display=swap"></noscript>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".45"/>
+      <circle cx="19" cy="21" r="4.5" fill="currentColor"/>
+      <circle cx="29.5" cy="27" r="3.2" fill="currentColor" opacity=".7"/>
+      <circle cx="26" cy="16" r="2" fill="currentColor" opacity=".5"/>
+    </svg>
+    <div>
+      <h1>Bio Laboratory</h1>
+      <p>Access Verification System</p>
+    </div>
+  </div>
+  <div class="topright">
+    <a class="navlink" href="door.html">Door device view</a>
+    <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Lab open</span></div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ LEFT: door console ============ -->
+  <aside class="console" aria-label="Door console">
+    <h2>Door console</h2>
+
+    <form id="reqForm" class="stack-form" autocomplete="off">
+      <label>Researcher ID
+        <input id="rid" list="ridList" inputmode="numeric" placeholder="e.g. 102" required>
+        <datalist id="ridList"></datalist>
+      </label>
+
+      <fieldset class="seg" aria-label="Credential type">
+        <label><input type="radio" name="method" value="password" checked><span>Password</span></label>
+        <label><input type="radio" name="method" value="nfc"><span>NFC card</span></label>
+        <label><input type="radio" name="method" value="fingerprint"><span>Fingerprint</span></label>
+      </fieldset>
+
+      <label>
+        <span id="credLabel">Password</span>
+        <span class="inline">
+          <input id="cred" type="password" placeholder="Enter password" autocomplete="off">
+          <button type="button" class="btn ghost" id="sim" hidden>Tap card</button>
+          <button type="button" class="btn ghost" id="enrol" hidden>Enrol fingerprint</button>
+        </span>
+      </label>
+      <p class="hint" id="credHint"></p>
+
+      <label>Zone
+        <select id="zoneSel"></select>
+      </label>
+
+      <div class="btnrow">
+        <button class="btn primary" type="submit" data-act="now">Enter now</button>
+        <button class="btn ghost" type="submit" data-act="queue">Send to queue only</button>
+      </div>
+    </form>
+
+    <div class="rule"></div>
+
+    <form id="emgForm" class="stack-form" autocomplete="off">
+      <h3>Emergency</h3>
+      <div class="two">
+        <select id="emgType" aria-label="Emergency command">
+          <option value="LOCKDOWN">Lockdown</option>
+          <option value="LIFT_LOCKDOWN">Lift lockdown</option>
+          <option value="REVOKE">Revoke access</option>
+          <option value="RESTORE">Restore access</option>
+          <option value="ALERT">Security alert</option>
+        </select>
+        <input id="emgTarget" placeholder="Researcher ID" aria-label="Target researcher ID" hidden>
+      </div>
+      <p class="hint" id="emgHint"></p>
+      <button class="btn danger" type="submit">Push to stack</button>
+    </form>
+
+    <div class="rule"></div>
+
+    <button class="btn big" id="processBtn" type="button">Process next</button>
+    <p class="hint">Enter now sends the request and decides it in one click. Use Send to queue only to show the queue, then Process next. Emergencies always go first.</p>
+    <p class="msg" id="msg" role="status"></p>
+
+    <fieldset class="seg two" aria-label="Result speed">
+      <label><input type="radio" name="speed" value="fast" checked><span>Fast results</span></label>
+      <label><input type="radio" name="speed" value="slow"><span>Step by step</span></label>
+    </fieldset>
+
+    <div class="result" id="result" aria-live="polite">
+      <p class="empty">Each decision will appear here, step by step.</p>
+    </div>
+  </aside>
+
+  <!-- ============ RIGHT: live data structures ============ -->
+  <div class="stage">
+
+    <section class="sec">
+      <div class="pair">
+        <div>
+          <h2>Waiting requests</h2>
+          <p class="note">Circular queue. First in, first out. The rear wraps back to slot 0.</p>
+          <div class="slots" id="slots"></div>
+          <p class="mono" id="qInfo"></p>
+        </div>
+        <div>
+          <h2>Emergency stack</h2>
+          <p class="note">Last in, first out. Runs before the queue.</p>
+          <div class="stack" id="stackBox"></div>
+          <p class="mono" id="sInfo"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Researchers</h2>
+      <p class="note">Hash table with chaining. The ID picks a bucket, so a lookup skips everyone else.</p>
+      <form id="lookForm" class="row" autocomplete="off">
+        <input id="lookId" placeholder="Look up an ID" inputmode="numeric" aria-label="ID to look up">
+        <button class="btn ghost" type="submit">Look up</button>
+        <span class="lookout" id="lookOut" role="status"></span>
+      </form>
+      <div class="scroll">
+        <table class="tbl">
+          <thead><tr><th>Bucket</th><th>ID</th><th>Name</th><th>Role</th><th>Status</th><th>Fingerprint</th><th>NFC</th></tr></thead>
+          <tbody id="people"></tbody>
+        </table>
+      </div>
+      <details class="reg">
+        <summary>Register a researcher</summary>
+        <form id="regForm" class="reg-grid" autocomplete="off">
+          <input id="rgId" placeholder="ID" inputmode="numeric" required aria-label="New ID">
+          <input id="rgName" placeholder="Name" required aria-label="New name">
+          <input id="rgRole" placeholder="Role" aria-label="New role">
+          <input id="rgPass" type="password" placeholder="Password" required aria-label="New password">
+          <select id="rgStatus" aria-label="New status"><option>Authorized</option><option>Restricted</option></select>
+          <button class="btn primary" type="submit">Register</button>
+        </form>
+      </details>
+    </section>
+
+    <section class="sec">
+      <h2>Zones and permissions</h2>
+      <p class="note">Binary tree keyed by security level. Deeper zones are more restricted. Click a name to remove that permission.</p>
+      <div class="tree" id="tree"></div>
+      <form id="permForm" class="row grant" autocomplete="off">
+        <select id="pgRes" aria-label="Researcher"></select>
+        <select id="pgZone" aria-label="Zone"></select>
+        <button class="btn primary" type="submit" data-action="grant">Grant</button>
+        <button class="btn ghost" type="submit" data-action="revoke">Revoke</button>
+      </form>
+    </section>
+
+    <section class="sec">
+      <h2>Audit log</h2>
+      <p class="note">Merge sort orders the log. Binary search then finds one researcher by halving the range each step.</p>
+      <div class="row between">
+        <div class="pills" id="sortPills" role="group" aria-label="Sort log by">
+          <button type="button" class="pill on" data-sort="time">Time</button>
+          <button type="button" class="pill" data-sort="id">Researcher</button>
+          <button type="button" class="pill" data-sort="severity">Severity</button>
+        </div>
+        <form id="findForm" class="row" autocomplete="off">
+          <input id="findId" placeholder="Find an ID" inputmode="numeric" aria-label="Researcher ID to find">
+          <button class="btn ghost" type="submit">Binary search</button>
+        </form>
+      </div>
+      <p class="searchout" id="searchOut" role="status"></p>
+      <div class="scroll">
+        <table class="tbl log">
+          <thead><tr><th>Time</th><th>Researcher</th><th>Zone</th><th>Result</th><th>Reason</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<p class="resetnote">
+  <button class="btn danger" id="resetBtn" type="button">Reset demo data</button>
+  <span>All data is saved in <b>labdata.txt</b> and survives restarts. Reset brings back the 5 sample researchers.</span>
+</p>
+
+<script src="app.js"></script>
+</body>
+</html>

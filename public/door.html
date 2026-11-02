@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bio Laboratory | Door Device</title>
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;600;800&display=swap">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;600;800&display=swap"></noscript>
+  <link rel="stylesheet" href="door.css">
+</head>
+<body>
+<main class="wrap">
+
+  <section class="device" aria-label="Lab door access device">
+    <div class="bezel-top">
+      <span class="brand">Bio Laboratory</span>
+      <span class="led" id="led" aria-hidden="true"></span>
+    </div>
+
+    <div class="screen" id="screen" data-state="idle">
+      <p class="banner" id="banner" hidden>LOCKDOWN ACTIVE: all entries are denied</p>
+
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="72" height="72">
+          <rect x="12" y="28" width="40" height="28" rx="6" fill="currentColor"/>
+          <path class="shackle" d="M20 28V20a12 12 0 0 1 24 0v8" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="32" cy="42" r="4" fill="var(--screen)"/>
+        </svg>
+      </div>
+
+      <h1 id="title">Where do you want to go?</h1>
+      <p class="sub" id="sub">Choose a zone, then identify yourself</p>
+
+      <div class="zones" id="zones" role="radiogroup" aria-label="Zone you want to enter"></div>
+
+      <form id="entry" autocomplete="off">
+        <label class="sr" for="uid">Researcher ID</label>
+        <input id="uid" placeholder="ID" inputmode="numeric" maxlength="12">
+        <label class="sr" for="pw">Password</label>
+        <input id="pw" type="password" placeholder="Password" maxlength="40">
+        <button class="enter" type="submit">Enter</button>
+      </form>
+
+      <div class="sosbox" id="sosbox">
+        <button type="button" id="sosYes" class="enter alert">Raise alert</button>
+        <button type="button" id="sosNo" class="enter cancel">Cancel</button>
+      </div>
+
+      <div class="timer" id="timer" aria-hidden="true"><span></span></div>
+    </div>
+
+    <div class="scanrow">
+      <button type="button" id="tap">Tap card</button>
+      <button type="button" id="finger">Fingerprint</button>
+    </div>
+
+    <button type="button" id="sos" class="sos">Emergency</button>
+  </section>
+
+  <aside class="sim">
+    <h2>Who is at the door?</h2>
+    <p class="simnote">Simulation only, not part of the device. Pick a person, then use Tap card or Fingerprint. For a password, type their ID and password above.</p>
+    <div class="chips" id="chips" role="group" aria-label="Simulated person"></div>
+    <p class="simhint" id="simhint"></p>
+    <p class="links"><a href="index.html">Admin control panel</a><button type="button" id="sound" class="linkbtn" aria-pressed="true">Sound on</button><button type="button" id="mode" class="linkbtn" aria-pressed="true">Send to admin: on</button></p>
+    <p class="simnote">Send to admin on: requests and alerts wait in the admin panel until security processes them. Off: the device decides at once.</p>
+  </aside>
+
+</main>
+<script src="door.js"></script>
+</body>
+</html>

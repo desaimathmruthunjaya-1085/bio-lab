@@ -1,0 +1,11 @@
+# compiled programs
+labgate
+labgate.exe
+*.exe
+*.o
+
+# saved lab data (contains password hashes and the audit log)
+labdata.txt
+labdata.txt.tmp
+labdata.bad
+labdata.old
